@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <stdlib.h>
+#include <time.h>
 
 class UDPServer{
 	int port;
@@ -13,6 +15,7 @@ class UDPServer{
 	bool is_blocking = true;
 	NetSocket *server_socket;
 	vector<Client*> clients;
+	vector<Client*> waiting_clients;
 	vector<TatetiMatch*> matchs;
 public:
 	bool stop();
@@ -24,6 +27,14 @@ public:
 	void _handle_connection_packet(char* cp, Client &from_client);
 	void _handle_game_packet(char* gp, Client &from_client);
 	void _create_match(Client *p1, Client *p2);
+	void _notify_client_match(Client * client, string info, int info_size);
+	void _set_player_turn(Client *c);
+	void _verify_play(byte row, byte column, Client &from_client);
+	void _update_match(TatetiMatch *match, char row, char column);
+	void _update_match_values(TatetiMatch *match, char row, char column);
+	void _set_next_turn(TatetiMatch *match);
+	void _on_winner(TatetiMatch *match);
+	void _notify_bad_play(Client &from_client);
 	UDPServer();
 	~UDPServer();
 };

@@ -1,17 +1,9 @@
 #include "TatetiMatch.h"
 
-
-
-void TatetiMatch::init() {
-	for (int x = 0; x < 3; x++) {
-		for (int y = 0; y < 3; y++) {
-			board[x][y] = '_';
-		}
-	}
-}
-
 void TatetiMatch::show_board() {
+	cout << "******" << endl;
 	for (size_t y = 0; y < 3; y++) {
+		cout << " " << endl;
 		for (size_t x = 0; x < 3; x++) {
 			cout << board[x][y];
 			if (x < 2) {
@@ -20,9 +12,11 @@ void TatetiMatch::show_board() {
 		}
 		cout << endl;
 	}
+	cout << "******" << endl;
 }
 
-bool TatetiMatch::check(char input) {
+bool TatetiMatch::check_win() {
+	int input = input_type[turn];
 	bool retval = false;
 
 	for (int a = 0; a < 3; a++) {
@@ -49,19 +43,11 @@ bool TatetiMatch::check(char input) {
 	return retval;
 }
 
-void TatetiMatch::insert_input(char input) {
-	int x, y;
-
-	do {
-		cout << "turno de " << input << endl << "Cordenada X:";
-		cin >> x;
-		cout << "Cordenada Y:";
-		cin >> y;
-		if (board[x - 1][y - 1] != '_')
-			cout << "Posicion ocupada, intentelo de nuevo" << endl;
-	} while (x < 1 || x > 3 || y < 1 || y > 3 || board[x - 1][y - 1] != '_');
-
-	board[x - 1][y - 1] = input;
+void TatetiMatch::insert_input(char row, char column) {
+	char input = input_type[turn];
+	int r_row = row - '0';
+	int r_col = column - '0';
+	board[r_col - 1][r_row - 1] = input;
 	holes--;
 }
 
@@ -72,9 +58,46 @@ void TatetiMatch::set_players(Client *c1, Client *c2) {
 	players_names.push_back(string(c2->get_name()));
 }
 
+bool TatetiMatch::check_input(char row, char column) {
+	int r_row = row - '0';
+	int r_col = column - '0';
+	return board[r_col - 1][r_row - 1] == '_';
+}
+
+void TatetiMatch::set_turn(char _turn) {
+	turn = _turn;
+}
+
+void TatetiMatch::set_holes(char _holes) {
+	holes = _holes;
+}
+
+char TatetiMatch::get_turn() const {
+	return turn;
+}
+
+char TatetiMatch::get_holes() const {
+	return holes;
+}
+
+void TatetiMatch::set_last_player(Client * p) {
+	last_player = p;
+}
+
+void TatetiMatch::next_turn() {
+	turn++;
+	turn = turn % 2;
+}
+
+Client * TatetiMatch::get_last_player() const {
+	return last_player;
+}
+
+vector<Client*> TatetiMatch::get_players() {
+	return players;
+}
+
 TatetiMatch::TatetiMatch() {
-	init();
-	show_board();
 }
 
 

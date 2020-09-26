@@ -40,13 +40,13 @@ void GameBase::create_client() {
 	cout << "***         X | X | O         ***" << endl;
 	cout << "*********************************" << endl;
 	is_server = false;
-	udp_client = new UDPClient();
 	cout << "Escribe la ip a conectar:";
 	string ip_address;
 	cin >> ip_address;
 	cout << "Escribe puerto a conectar:";
 	uint16_t port;
 	cin >> port;
+	udp_client = new UDPClient();
 	bool connected = udp_client->connect_to(ip_address.c_str(), port);
 	if (connected) {
 		udp_client->send_connect();
@@ -80,15 +80,9 @@ void GameBase::server_loop() {
 }
 
 void GameBase::client_loop() {
-	NetworkPacket packet;
-	int command = -1;
-	while (true) {
-		memset(&packet.data, 0, sizeof(packet.data));
-		int r_bytes;
 
-		udp_client->receive((char*)&packet, sizeof(packet), r_bytes);
-
-		udp_client->process_packet(packet);
+	while (!udp_client->queued_for_exit()) {
+		udp_client->process_state();
 	}
 }
 

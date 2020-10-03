@@ -28,6 +28,9 @@ void GameBase::create_server() {
 	cout << "Escribe puerto a escuchar:";
 	uint16_t port;
 	cin >> port;
+	if (port == 0) {
+		port = 27015;
+	}
 	udp_server->listen("127.0.0.1", (uint16_t)port);
 }
 
@@ -43,9 +46,15 @@ void GameBase::create_client() {
 	cout << "Escribe la ip a conectar:";
 	string ip_address;
 	cin >> ip_address;
+	if (ip_address == "0") {
+		ip_address = "127.0.0.1";
+	}
 	cout << "Escribe puerto a conectar:";
 	uint16_t port;
 	cin >> port;
+	if (port == 0) {
+		port = 27015;
+	}
 	udp_client = new UDPClient();
 	bool connected = udp_client->connect_to(ip_address.c_str(), port);
 	if (connected) {
@@ -63,19 +72,8 @@ void GameBase::loop() {
 }
 
 void GameBase::server_loop() {
-	NetworkPacket np;
-	Client client;
-	int client_size = sizeof(client);
-
 	while (true) {
-		int command = -1;
-
-		memset(&client, 0, client_size);
-		memset(&np.data, 0, sizeof(np.data));
-
-		udp_server->receive_from((char *)&np, sizeof(NetworkPacket), client);
-
-		udp_server->process_packet(np, client);
+		udp_server->poll_sockets();
 	}
 }
 
@@ -85,8 +83,6 @@ void GameBase::client_loop() {
 		udp_client->process_state();
 	}
 }
-
-
 
 void GameBase::destroy() {
 	if (udp_server) {

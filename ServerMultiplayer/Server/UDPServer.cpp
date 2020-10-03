@@ -13,7 +13,8 @@ void UDPServer::listen(const char* _ip_address, uint16_t _port) {
 	err = server_socket->bind_socket(_ip_address, _port);
 	ip_address = _ip_address;
 	port = _port;
-	cout << "Listen on port:" << port << endl;
+	string info = "LISTEN ON PORT:" + to_string(_port);
+	Log::print_verbose(info.c_str());
 }
 
 void UDPServer::receive(char * data, int data_size, int & r_read) {
@@ -98,7 +99,7 @@ void UDPServer::_handle_connection_packet(char* p, Client & from_client) {
 		break;
 	case CT_RESTART:
 		new_client->set_data(from_client.get_ip_address(), from_client.get_port());
-		new_client->set_name(from_client.get_name());
+		new_client->set_name(cp->data);
 		waiting_clients.push_back(new_client);
 		// Le respondo
 		ConnectionPacket cresp;
@@ -195,7 +196,12 @@ void UDPServer::_update_match(TatetiMatch * match, char row, char column) {
 	else {
 		match->next_turn();
 		_update_match_values(match, row, column);
-		_set_next_turn(match);
+		if (match->get_holes() == 0) {
+			_on_draw(match);
+		}
+		else {
+			_set_next_turn(match);
+		}
 	}
 }
 
@@ -248,12 +254,41 @@ void UDPServer::_on_winner(TatetiMatch * match) {
 	}
 }
 
+void UDPServer::_on_draw(TatetiMatch * match) {
+	GamePacket gp;
+	gp.cmd = GT_DRAW;
+	string draw = "* * * Has Empatado! * * *";
+	memcpy(&gp.aux, draw.c_str(), sizeof(gp.aux));
+	for (size_t i = 0; i < 2; i++) {
+		Client *client = match->get_players()[i];
+		Packet::send_to_network_packet(server_socket, NT_GAME, (char*)&gp, sizeof(gp), client->get_ip_address(), client->get_port());
+	}
+	for (size_t i = 0; i < matchs.size(); i++) {
+		if (matchs[i] == match) {
+			matchs.erase(matchs.begin() + i);
+			break;
+		}
+	}
+}
+
 void UDPServer::_notify_bad_play(Client & from_client) {
 	GamePacket gp;
 	gp.cmd = GT_PLAY_NOK;
 	string bad_play = " Jugada invalida! ";
 	memcpy(&gp.aux, bad_play.c_str(), sizeof(gp.aux));
 	Packet::send_to_network_packet(server_socket, NT_GAME, (char*)&gp, sizeof(gp), from_client.get_ip_address(), from_client.get_port());
+}
+
+void UDPServer::poll_sockets() {
+	NetworkPacket np;
+	Client client;
+	int client_size = sizeof(client);
+	int command = -1;
+
+	if (server_socket->poll(POLL_TYPE_BOTH, 0.01)) {
+		receive_from((char *)&np, sizeof(NetworkPacket), client);
+		process_packet(np, client);
+	}
 }
 
 UDPServer::UDPServer(){

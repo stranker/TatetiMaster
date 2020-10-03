@@ -1,6 +1,6 @@
 #include "NetSocket.h"
 
-SOCKET NetSocket::get_socket(){
+SOCKET_TYPE NetSocket::get_socket(){
 	return net_socket;
 }
 
@@ -24,8 +24,15 @@ bool NetSocket::bind_socket(const char *_ip_address, uint16_t _port){
 
 bool NetSocket::close(){
 	if (VERBOSE) cout << "Closing socket" << endl;
-	int err = closesocket(net_socket);
-	return err >= 0;
+	int status;
+#if defined(WINDOWS_ENABLED)
+	status = shutdown(net_socket, SD_BOTH);
+	if (status == 0) { status = closesocket(net_socket);}
+#else
+	status = shutdown(net_socket, SD_BOTH);
+	if (status == 0) { status = close(net_socket); }
+#endif
+	return status;
 }
 
 bool NetSocket::open() {
@@ -105,6 +112,62 @@ bool NetSocket::send_connected(char * data, int data_size) {
 	}
 	if (VERBOSE)cout << "Bytes sent:" << bytes_sent << endl;
 	return true;
+}
+
+bool NetSocket::poll(PoolType p_type, int p_timeout) {
+		bool ready = false;
+		fd_set rd, wr, ex;
+		fd_set *rdp = nullptr;
+		fd_set *wrp = nullptr;
+		FD_ZERO(&rd);
+		FD_ZERO(&wr);
+		FD_ZERO(&ex);
+		FD_SET(net_socket, &ex);
+		struct timeval timeout = { p_timeout, 0 };
+		// For blocking operation, pass nullptr  timeout pointer to select.
+		struct timeval *tp = nullptr;
+		if (p_timeout >= 0) {
+			//  If timeout is non-negative, we want to specify the timeout instead.
+			tp = &timeout;
+		}
+
+		switch (p_type) {
+		case POLL_TYPE_READ:
+			FD_SET(net_socket, &rd);
+			rdp = &rd;
+			break;
+		case POLL_TYPE_WRITE:
+			FD_SET(net_socket, &wr);
+			wrp = &wr;
+			break;
+		case POLL_TYPE_BOTH:
+			FD_SET(net_socket, &rd);
+			FD_SET(net_socket, &wr);
+			rdp = &rd;
+			wrp = &wr;
+		}
+		int ret = select(1, rdp, wrp, &ex, tp);
+
+		if (ret == SOCKET_ERROR) {
+			Log::print_verbose("SOCKET ERROR");
+			return false;
+		}
+
+		if (ret == 0) {
+			Log::print_verbose("BUSY");
+			return false;
+		}
+
+		if (FD_ISSET(net_socket, &ex)) {
+			Log::print_verbose("EXCEPTION");
+			return false;
+		}
+
+		if (rdp && FD_ISSET(net_socket, rdp))
+			ready = true;
+		if (wrp && FD_ISSET(net_socket, wrp))
+			ready = true;
+	return ready ? true : false;
 }
 
 NetSocket::NetSocket(){

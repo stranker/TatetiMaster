@@ -34,7 +34,9 @@ public:
 	void _update_match_values(TatetiMatch *match, char row, char column);
 	void _set_next_turn(TatetiMatch *match);
 	void _on_winner(TatetiMatch *match);
+	void _on_draw(TatetiMatch *match);
 	void _notify_bad_play(Client &from_client);
+	void poll_sockets();
 	UDPServer();
 	~UDPServer();
 };

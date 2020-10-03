@@ -6,7 +6,7 @@ using namespace std;
 
 enum NetworkType{NT_CONNECTION, NT_GAME};
 enum ConnectionType{CT_CONNECT, CT_DISCONNECT, CT_ON_CONNECTED, CT_ON_MATCH, CT_SET_TURN, CT_RESTART};
-enum GameType{GT_MESSAGE, GT_PLAY, GT_PLAY_OK, GT_PLAY_NOK, GT_WIN, GT_LOSE};
+enum GameType{GT_MESSAGE, GT_PLAY, GT_PLAY_OK, GT_PLAY_NOK, GT_WIN, GT_LOSE, GT_DRAW};
 
 struct ConnectionPacket {
 	char cmd;

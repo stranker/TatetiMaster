@@ -129,6 +129,7 @@
   <ItemGroup>
     <ClInclude Include="Client.h" />
     <ClInclude Include="GameBase.h" />
+    <ClInclude Include="Helper.h" />
     <ClInclude Include="NetSocket.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="TatetiMatch.h" />

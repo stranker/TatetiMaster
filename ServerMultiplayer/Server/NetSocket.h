@@ -5,14 +5,16 @@
 
 using namespace std;
 
+enum PoolType {POLL_TYPE_READ, POLL_TYPE_WRITE, POLL_TYPE_BOTH};
+
 class NetSocket
 {
 private:
 	const char* ip_address;
 	int port;
-	SOCKET net_socket;
+	SOCKET_TYPE net_socket;
 public:
-	SOCKET get_socket();
+	SOCKET_TYPE get_socket();
 	bool bind_socket(const char *_ip_address, uint16_t _port);
 	bool close();
 	bool open();
@@ -21,6 +23,7 @@ public:
 	bool receive_from(char* data, int data_size, Client &client_from);
 	bool send_to(char *data, int data_size, const char* to_ip_address, uint16_t to_port);
 	bool send_connected(char *data, int data_size);
+	bool poll(PoolType p_type, int p_timeout);
 	NetSocket();
 	~NetSocket();
 };

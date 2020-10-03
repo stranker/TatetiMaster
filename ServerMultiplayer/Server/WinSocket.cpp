@@ -1,20 +1,24 @@
 #include "WinSocket.h"
 
 bool WinSocket::init(){
-	if (VERBOSE) cout << "WSAS INIT" << endl;
+	Log::print_verbose("WSAS INIT");
+#if defined(WINDOWS_ENABLED)
 	WSADATA data;
 	WORD version = MAKEWORD(2, 2);
 	int isOk = WSAStartup(version, &data);
 	if (isOk != 0) {
-		if (VERBOSE) cout << "WSAS START FAILED" << endl;
+		Log::print_verbose("WSAS START FAILED");
 		return false;
 	}
+#endif
 	return true;
 }
 
 bool WinSocket::stop(){
-	if (VERBOSE) cout << "WSAS DESTROY" << endl;
+	Log::print_verbose("WSAS DESTROY");
+#if defined(WINDOWS_ENABLED)
 	WSACleanup();
+#endif
 	return true;
 }
 

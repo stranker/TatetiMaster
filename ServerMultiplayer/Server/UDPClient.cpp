@@ -96,6 +96,10 @@ void UDPClient::_handle_game_packet(char * p) {
 		current_state = ON_TURN;
 		_on_restart();
 		break;
+	case GT_DRAW:
+		cout << gp->aux << endl;
+		current_state = ON_TURN;
+		_on_restart();
 	default:
 		break;
 	}
@@ -114,6 +118,9 @@ void UDPClient::_on_restart() {
 	cin >> answer;
 	ConnectionPacket cp;
 	cp.cmd = answer == 1 ? CT_RESTART : CT_DISCONNECT;
+	if (answer) {
+		memcpy(&cp.data, alias.c_str(), sizeof(cp.data));
+	}
 	Packet::send_network_packet(client_socket, NT_CONNECTION, (char*)&cp, sizeof(cp));
 	current_state = WAIT;
 	delete current_match;
@@ -157,7 +164,8 @@ void UDPClient::send_connect() {
 	ConnectionPacket cp;
 	cout << "Ingresa un alias:";
 	cp.cmd = CT_CONNECT;
-	cin >> cp.data;
+	cin >> alias;
+	memcpy(&cp.data, alias.c_str(), sizeof(cp.data));
 	Packet::send_network_packet(client_socket, NT_GAME, (char*)&cp, sizeof(cp));
 	NetworkPacket p = Packet::create_netwok_packet(NT_CONNECTION, (char*)&cp, sizeof(cp));
 	send((char*)&p, sizeof(p));

@@ -13,6 +13,7 @@ private:
 	TatetiMatch *current_match;
 	bool connected = false;
 	bool queue_exit = false;
+	string alias;
 public:
 	bool connect_to(const char* _ip_address, uint16_t _port);
 	void send_to(char *data, int data_size, const char* to_ip_address, uint16_t to_port);
